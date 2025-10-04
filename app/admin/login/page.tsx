@@ -28,23 +28,23 @@ const page = () => {
   // const next = "/admin/control/products";
   const next = "/admin/home";
 
-  async function Submit(username: string, password: string) {
+  async function Submit(email: string, password: string) {
     setLoading(true);
     setError(null);
     console.log({
-      "email": username,
+      "email": email,
       "password": password
     })
 
-    if (!username.trim() || !password) {
-      setError("Username and password are required.");
+    if (!email.trim() || !password) {
+      setError("email and password are required.");
       return;
     }
     try {
       const res = await fetch(`/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ email, password }),
       });
       if (!res.ok) {
         const { error } = await res.json().catch(() => ({ error: "Login failed" }));
@@ -135,26 +135,14 @@ const page = () => {
                       />
                       Show password
                     </label>
-                    <a className="hover:underline" href="#" onClick={(e) => e.preventDefault()}>
-                      Forgot password?
-                    </a>
                   </div>
                 </div>
 
-                <Button type="submit" className={`w-full ${loading ? "opacity-50 cursor-not-allowed" : ""}`} disabled={loading} >
+                <Button type="submit" className={`w-full bg-[#5d89e1] ${loading ? "opacity-50 cursor-not-allowed" : ""}`} disabled={loading} >
                   {loading ? (<><Loader2 className="h-4 w-4 animate-spin" /> Loading...</>) : "Sign in"}
                 </Button>
               </form>
             </CardContent>
-
-            <CardFooter className="text-center text-sm text-muted-foreground">
-              <p className="w-full">
-                Don't have an account?{' '}
-                <a className="font-medium hover:underline" href="#" onClick={(e) => e.preventDefault()}>
-                  Create one
-                </a>
-              </p>
-            </CardFooter>
           </Card>
         </div>
       </div>

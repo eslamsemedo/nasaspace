@@ -5,8 +5,11 @@ import { json } from "stream/consumers";
 const COOKIE_NAME = "admin_token";
 
 export async function POST(req: NextRequest) {
+  const cookieStore = cookies();
+  const token = (await cookieStore).get("admin_token")?.value;
+  console.log(token)
   try {
-    const body = await req.json(); // { username, password }
+    const body = await req.json(); // { email, password }
     // console.log('BACKEND_URL:', process.env.BACKEND_URL); // Debug line
 
     const res = await fetch(`${process.env.BACKEND_URL}/api/Auth/Login`, {
@@ -16,7 +19,7 @@ export async function POST(req: NextRequest) {
         accept: "application/json",
       },
       body: JSON.stringify({
-        email: String(body.username),
+        email: String(body.email),
         password: String(body.password),
       }),
     });
