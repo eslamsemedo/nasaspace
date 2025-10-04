@@ -123,7 +123,7 @@ type ApiEnvelope = {
 // Server-side helper (use from route handlers / server actions)
 export const createTeam = async (
   team: CreateTeamPayload
-)=> {
+) => {
   const token = (await cookies()).get("admin_token")?.value;
 
   try {
@@ -160,7 +160,7 @@ export const createTeam = async (
       try {
         const parsed = JSON.parse(msg);
         if (parsed?.message) msg = parsed.message;
-      } catch {}
+      } catch { }
       throw new Error(msg);
     }
 
@@ -207,7 +207,7 @@ export const deleteTeamById = async (id: string) => {
       try {
         const parsed = JSON.parse(msg);
         if (parsed?.message) msg = parsed.message;
-      } catch {}
+      } catch { }
       throw new Error(msg);
     }
 
@@ -244,5 +244,59 @@ export const getTeamById = async (id: string) => {
     return data;
   } catch (e: any) {
     throw new Error(`${e?.message || "Failed to load"}`)
+  }
+};
+
+type ScorePayload = {
+  impact: number;
+  creativity: number;
+  presentation: number;
+  relevance: number;
+  validity: number;
+};
+export const addscoreToTeam = async (id: number, score: ScorePayload) => {
+  const token = (await cookies()).get("admin_token")?.value;
+
+  try {
+    const res = await fetch(
+      `https://nasaspaceappshurghada.runasp.net/api/Team/AddScore/${id}`,
+      {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(score),
+        // important for server fetches hitting external APIs
+        cache: "no-store",
+      }
+    );
+
+    // Try to read JSON either way so we can surface API messages
+    // const json = (await res.json().catch(() => null)) as
+    //   | ApiEnvelope<T>
+    //   | { message?: string; error?: string }
+    //   | null;
+
+    const json = await res.json()
+
+    if (!res.ok || (json && "succeeded" in json && json.succeeded === false)) {
+      // prefer API-provided message
+      let msg =
+        (json as any)?.error[0] ||
+        (json as any)?.message ||
+        `HTTP error ${res.status}`;
+      // handle stringified JSON error: { error: "{\"message\":\"...\"}" }
+      try {
+        const parsed = JSON.parse(msg);
+        if (parsed?.message) msg = parsed.message;
+      } catch { }
+      throw new Error(msg);
+    }
+
+    return json.message;
+  } catch (e: any) {
+    throw new Error(e?.message || "Failed to add score to team");
   }
 };

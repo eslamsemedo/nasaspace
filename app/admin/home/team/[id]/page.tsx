@@ -93,7 +93,7 @@ export default async function Page(
           {
             icon: <Trophy className="h-4 w-4" />,
             label: "Score",
-            value: team.score,
+            value: scoreSum,
             hint:
               judgesCount > 0
                 ? `Avg / judge (sum of criteria): ${scorePerJudge}`
