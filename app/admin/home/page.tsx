@@ -69,6 +69,12 @@ const Page = () => {
           >
             Judge
           </button>
+          <button
+            className={`cursor-pointer px-4 py-2 rounded ${activeTable === 'judge' ? 'bg-blue-500' : 'bg-gray-600'}`}
+            onClick={() => router.push('/admin/score')}
+          >
+            Score
+          </button>
         </div>
 
         <Table type={activeTable} />
