@@ -23,43 +23,35 @@ const FIELDS: { key: ScoreKey; label: string }[] = [
   { key: "validity", label: "Validity" },
 ];
 
-export default function ScorePage(props: PageProps<"/admin/score/[id]">) {
+export default function ScorePage() {
   // ---- Routing / ids ----
-  // useEffect(() => {
-  //   (async () => {
-
-  //   })()
-  // },[props.params])
-
-  // const params = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
   const router = useRouter();
-  const [teamId, setTeamId] = useState<number>(0)
+  const teamId = useMemo(() => Number(params.id), [params.id]);
 
   // ---- Team fetch state ----
   const [teamData, setTeamData] = useState<TeamDetailResponse | null>(null);
   const [teamLoading, setTeamLoading] = useState(true);
   const [teamError, setTeamError] = useState<string | null>(null);
-  const [update, setUpdate] = useState<boolean>(false)
+  const [isUpdate, setIsUpdate] = useState<boolean>(false);
 
   useEffect(() => {
+    if (!params?.id) return; // guard until router has the param
     (async () => {
       try {
-        const { id } = await props.params;
-        setTeamId(Number(id))
         setTeamLoading(true);
         setTeamError(null);
-        const data = await getTeamById(String(id));
-        console.log(data.data?.scores[0].id)
-        if (data.data?.scores?.length && data.data?.scores?.length > 0) setUpdate(true)
+        const data = await getTeamById(String(teamId));
+        setIsUpdate(!!(data.data?.scores && data.data.scores.length > 0));
         setTeamData(data);
       } catch (e: any) {
-        setTeamError("Failed to fetch team data");
+        // surface the real error if available
+        setTeamError(e?.message ?? "Failed to fetch team data");
       } finally {
         setTeamLoading(false);
       }
-
     })();
-  }, [props.params]);
+  }, [params?.id, teamId]);
 
   // ---- Inputs (raw strings so user can type/clear freely) ----
   const [values, setValues] = useState<Record<ScoreKey, string>>({
@@ -90,7 +82,7 @@ export default function ScorePage(props: PageProps<"/admin/score/[id]">) {
     return { ok: true, value: n as number, reason: null as null };
   }
 
-  async function handleSubmit() {
+  async function submitBase(submitFn: () => Promise<any>) {
     setMsg(null);
 
     // Validate all fields at once
@@ -110,62 +102,32 @@ export default function ScorePage(props: PageProps<"/admin/score/[id]">) {
     }
 
     setErrors(nextErrors);
-
     const hasError = Object.values(nextErrors).some(Boolean);
     if (hasError) return;
 
-    // All good — submit
     try {
       setSubmitting(true);
-      const res = await addscoreToTeam(teamId, parsed as ScorePayload);
+      const res = await submitFn();
       setMsg(typeof res === "string" ? res : "Saved");
-      // router.back(); // or navigate if you want
     } catch (e: any) {
       setMsg(`Error: ${e?.message ?? "Failed to save"}`);
     } finally {
       setSubmitting(false);
     }
   }
+
+  async function handleSubmit() {
+    await submitBase(() => addscoreToTeam(teamId, values as unknown as ScorePayload));
+  }
+
   async function handleUpdate() {
-    setMsg(null);
-
-    // Validate all fields at once
-    const nextErrors: Record<ScoreKey, string | null> = {
-      impact: null,
-      creativity: null,
-      presentation: null,
-      relevance: null,
-      validity: null,
-    };
-    const parsed: Partial<ScorePayload> = {};
-
-    for (const { key } of FIELDS) {
-      const r = parseNumber(values[key]);
-      if (!r.ok) nextErrors[key] = r.reason!;
-      else parsed[key] = r.value;
-    }
-
-    setErrors(nextErrors);
-
-    const hasError = Object.values(nextErrors).some(Boolean);
-    if (hasError) return;
-
-    // All good — submit
-    try {
-      setSubmitting(true);
-      const res = await updateScore(teamData?.data?.scores[0].id ?? 0, parsed as ScorePayload);
-      setMsg(typeof res === "string" ? res : "Saved");
-      // router.back(); // or navigate if you want
-    } catch (e: any) {
-      setMsg(`Error: ${e?.message ?? "Failed to save"}`);
-    } finally {
-      setSubmitting(false);
-    }
+    const scoreId = teamData?.data?.scores?.[0]?.id ?? 0;
+    await submitBase(() => updateScore(scoreId, values as unknown as ScorePayload));
   }
 
   // ---- Derived from teamData ----
   const team = teamData?.data ?? null;
-  const teamName = team?.name ?? `Team #${teamId}`;
+  const teamName = team?.name ?? `Team #${teamId || "—"}`;
   const challengeName = team?.challengeName ?? "—";
 
   return (
@@ -187,7 +149,7 @@ export default function ScorePage(props: PageProps<"/admin/score/[id]">) {
               Challenge: <span className="text-slate-300">{challengeName}</span>
             </p>
           </div>
-          <span className="text-xs sm:text-sm text-slate-400 md:shrink-0">Team ID: {teamId}</span>
+          <span className="text-xs sm:text-sm text-slate-400 md:shrink-0">Team ID: {teamId || "—"}</span>
         </div>
 
         {/* Team fetch states */}
@@ -210,10 +172,11 @@ export default function ScorePage(props: PageProps<"/admin/score/[id]">) {
               {team.members.map((m) => (
                 <span
                   key={m.id}
-                  className={`inline-flex items-center gap-2 rounded-full border px-2 py-1 text-[11px] sm:text-xs ${m.attended
+                  className={`inline-flex items-center gap-2 rounded-full border px-2 py-1 text-[11px] sm:text-xs ${
+                    m.attended
                       ? "border-emerald-700 bg-emerald-900/20 text-emerald-200"
                       : "border-slate-700 bg-slate-800 text-slate-300"
-                    }`}
+                  }`}
                   title={`${m.fullName} • ${m.email} • ${m.phone}`}
                 >
                   {m.fullName}
@@ -248,13 +211,14 @@ export default function ScorePage(props: PageProps<"/admin/score/[id]">) {
                   inputMode="numeric"
                   value={values[key]}
                   onChange={(e) => {
-                    const next = e.currentTarget.value; // capture first
+                    const next = e.currentTarget.value;
                     setValues((prev) => ({ ...prev, [key]: next }));
                   }}
                   className={`w-full rounded-lg border px-3 py-2 text-sm sm:text-base text-slate-100 outline-none
-                    ${errors[key]
-                      ? "border-red-600 bg-red-900/20 focus:ring-2 focus:ring-red-600"
-                      : "border-slate-700 bg-slate-900 focus:ring-2 focus:ring-slate-600"
+                    ${
+                      errors[key]
+                        ? "border-red-600 bg-red-900/20 focus:ring-2 focus:ring-red-600"
+                        : "border-slate-700 bg-slate-900 focus:ring-2 focus:ring-slate-600"
                     }`}
                   placeholder="0–10"
                 />
@@ -268,10 +232,11 @@ export default function ScorePage(props: PageProps<"/admin/score/[id]">) {
 
         {msg && (
           <div
-            className={`rounded-lg border px-3 py-2 text-sm ${msg.startsWith("Error")
+            className={`rounded-lg border px-3 py-2 text-sm ${
+              msg.startsWith("Error")
                 ? "border-red-600 bg-red-900/30 text-red-200"
                 : "border-emerald-600 bg-emerald-900/30 text-emerald-200"
-              }`}
+            }`}
           >
             {msg}
           </div>
@@ -279,11 +244,11 @@ export default function ScorePage(props: PageProps<"/admin/score/[id]">) {
 
         <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={update ? handleUpdate : handleSubmit}
-            disabled={submitting}
+            onClick={isUpdate ? handleUpdate : handleSubmit}
+            disabled={submitting || !teamId}
             className="inline-flex items-center rounded-lg bg-slate-200 px-4 py-2 font-medium text-slate-900 hover:bg-white disabled:opacity-60"
           >
-            {submitting ? "Saving…" : update ? "Update score" : "Save score"}
+            {submitting ? "Saving…" : isUpdate ? "Update score" : "Save score"}
           </button>
           <button
             onClick={() => router.back()}
