@@ -54,16 +54,29 @@ export default async function TeamTable() {
               <table className="min-w-full border-collapse text-[0.95rem] leading-6">
                 <thead className="bg-slate-900">
                   <tr>
+                    <Th></Th>
                     <Th>ID</Th>
                     <Th>Name</Th>
                     <Th className="text-right">Score</Th>
                   </tr>
                 </thead>
-                <tbody className="[&_tr:nth-child(even)]:bg-slate-900">
+                <tbody>
                   {data.map((row) => (
-                    <tr key={row.id} className="hover:bg-slate-800 transition-colors">
+                    <tr
+                      key={row.id}
+                      className="relative hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      {/* Invisible overlay that covers the entire row */}
+                      <Link
+                        href={`score/${row.id}`}
+                        className="absolute inset-0"
+                        aria-label={`Open scores for ${row.name}`}
+                        prefetch={false}
+                      />
                       <Td>{String(row.id)}</Td>
-                      <Td><span className="block max-w-[42rem] truncate">{row.name}</span></Td>
+                      <Td>
+                        <span className="block max-w-[42rem] truncate">{row.name}</span>
+                      </Td>
                       <Td className="text-right">
                         <span className="rounded-md border border-slate-700 bg-slate-800 px-2 py-0.5 text-slate-100">
                           {row.score}
