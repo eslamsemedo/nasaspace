@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 
 export default function RefreshControls({ className = "" }: { className?: string }) {
   const router = useRouter();
-  const [auto, setAuto] = useState(false);
+  const [auto, setAuto] = useState(true);
   const [intervalMs, setIntervalMs] = useState(5000);
 
   useEffect(() => {

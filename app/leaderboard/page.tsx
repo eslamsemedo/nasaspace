@@ -166,7 +166,7 @@ export default async function Page() {
         <div className="mt-6 flex items-center justify-between text-xs text-white/50">
 
           <div>Updated just now • Scores auto‑refresh on page load</div>
-          <div className="hidden sm:block">Powered by open space data</div>
+          <div className="hidden sm:block">Powered by NASA SPACE APPS</div>
         </div>
           <RefreshToggle className="mt-2"  />
       </div>
