@@ -23,11 +23,17 @@ const FIELDS: { key: ScoreKey; label: string }[] = [
   { key: "validity", label: "Validity" },
 ];
 
-export default function ScorePage() {
+export default function ScorePage(props: PageProps<"/admin/score/[id]">) {
   // ---- Routing / ids ----
-  const params = useParams<{ id: string }>();
+  // useEffect(() => {
+  //   (async () => {
+
+  //   })()
+  // },[props.params])
+
+  // const params = useParams<{ id: string }>();
   const router = useRouter();
-  const teamId = useMemo(() => Number(params.id), [params.id]);
+  const [teamId, setTeamId] = useState<number>(0)
 
   // ---- Team fetch state ----
   const [teamData, setTeamData] = useState<TeamDetailResponse | null>(null);
@@ -38,20 +44,22 @@ export default function ScorePage() {
   useEffect(() => {
     (async () => {
       try {
+        const { id } = await props.params;
+        setTeamId(Number(id))
         setTeamLoading(true);
         setTeamError(null);
-        const data = await getTeamById(String(teamId));
+        const data = await getTeamById(String(id));
         console.log(data.data?.scores[0].id)
-        if(data.data?.scores?.length && data.data?.scores?.length > 0) setUpdate(true)
+        if (data.data?.scores?.length && data.data?.scores?.length > 0) setUpdate(true)
         setTeamData(data);
       } catch (e: any) {
-        setTeamError(e?.message ?? "Failed to fetch team data");
+        setTeamError("Failed to fetch team data");
       } finally {
         setTeamLoading(false);
       }
-      
+
     })();
-  }, [teamId]);
+  }, [props.params]);
 
   // ---- Inputs (raw strings so user can type/clear freely) ----
   const [values, setValues] = useState<Record<ScoreKey, string>>({
@@ -202,11 +210,10 @@ export default function ScorePage() {
               {team.members.map((m) => (
                 <span
                   key={m.id}
-                  className={`inline-flex items-center gap-2 rounded-full border px-2 py-1 text-[11px] sm:text-xs ${
-                    m.attended
+                  className={`inline-flex items-center gap-2 rounded-full border px-2 py-1 text-[11px] sm:text-xs ${m.attended
                       ? "border-emerald-700 bg-emerald-900/20 text-emerald-200"
                       : "border-slate-700 bg-slate-800 text-slate-300"
-                  }`}
+                    }`}
                   title={`${m.fullName} • ${m.email} • ${m.phone}`}
                 >
                   {m.fullName}
@@ -245,10 +252,9 @@ export default function ScorePage() {
                     setValues((prev) => ({ ...prev, [key]: next }));
                   }}
                   className={`w-full rounded-lg border px-3 py-2 text-sm sm:text-base text-slate-100 outline-none
-                    ${
-                      errors[key]
-                        ? "border-red-600 bg-red-900/20 focus:ring-2 focus:ring-red-600"
-                        : "border-slate-700 bg-slate-900 focus:ring-2 focus:ring-slate-600"
+                    ${errors[key]
+                      ? "border-red-600 bg-red-900/20 focus:ring-2 focus:ring-red-600"
+                      : "border-slate-700 bg-slate-900 focus:ring-2 focus:ring-slate-600"
                     }`}
                   placeholder="0–10"
                 />
@@ -262,11 +268,10 @@ export default function ScorePage() {
 
         {msg && (
           <div
-            className={`rounded-lg border px-3 py-2 text-sm ${
-              msg.startsWith("Error")
+            className={`rounded-lg border px-3 py-2 text-sm ${msg.startsWith("Error")
                 ? "border-red-600 bg-red-900/30 text-red-200"
                 : "border-emerald-600 bg-emerald-900/30 text-emerald-200"
-            }`}
+              }`}
           >
             {msg}
           </div>
