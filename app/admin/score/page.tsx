@@ -1,10 +1,13 @@
 import { getTeams } from "@/lib/api";
+import { calcScore } from "@/lib/helper";
 import type { Team } from "@/types/types";
 import Link from "next/link";
 // import router from "next/router";
 
 export default async function TeamTable() {
   const data = (await getTeams()) as Team[];
+  // const scores = data.map((team) => team.score);
+  // const averageScore = calcScore(scores);
 
   return (
     <div className="  border border-slate-800 bg-slate-950 p-4 md:p-6 shadow-lg shadow-black/30">
@@ -80,6 +83,7 @@ export default async function TeamTable() {
                       <Td className="text-right">
                         <span className="rounded-md border border-slate-700 bg-slate-800 px-2 py-0.5 text-slate-100">
                           {row.score}
+
                         </span>
                       </Td>
                     </tr>

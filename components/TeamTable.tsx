@@ -67,7 +67,7 @@ export default function TeamTable({
                   <td className="border-b border-zinc-800 px-4 py-2">{String(row.id)}</td>
                   <td className="border-b border-zinc-800 px-4 py-2">{row.name}</td>
                   <td className="border-b border-zinc-800 px-4 py-2">{row.score}</td>
-                  <td className="border-b border-zinc-800 px-4 py-2">
+                  {/* <td className="border-b border-zinc-800 px-4 py-2">
                     <div className="flex justify-end gap-1">
                       <DeleteTeamButton
                         id={row.id}
@@ -76,7 +76,7 @@ export default function TeamTable({
                         onDeleted={onCreated}    // reuse your refresh callback
                       />
                     </div>
-                  </td>
+                  </td> */}
                 </tr>
             ))}
           </tbody>
