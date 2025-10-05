@@ -93,10 +93,10 @@ export default async function Page(
           {
             icon: <Trophy className="h-4 w-4" />,
             label: "Score",
-            value: scoreSum,
+            value: scorePerJudge,
             hint:
               judgesCount > 0
-                ? `Avg / judge (sum of criteria): ${scorePerJudge}`
+                ? `Avg / judge (sum of criteria): ${scoreSum}`
                 : undefined,
           },
         ].map((card, i) => (

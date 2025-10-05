@@ -54,7 +54,7 @@ export default function Home() {
           className="mt-10 flex items-center gap-4"
         >
           <CTAButton href="/admin">Login</CTAButton>
-          <CTAButton href="/admin">Score</CTAButton>
+          <CTAButton href="/admin/score">Score</CTAButton>
         </motion.div>
 
         {/* Decorative orbiting elements */}
