@@ -1,6 +1,7 @@
 import { getTeams } from "@/lib/api";
 import { calcScore } from "@/lib/helper";
 import type { Team } from "@/types/types";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 // import router from "next/router";
 
@@ -12,6 +13,9 @@ export default async function TeamTable() {
   return (
     <div className="  border border-slate-800 bg-slate-950 p-4 md:p-6 shadow-lg shadow-black/30">
       <div className="mb-4 flex items-center justify-between gap-3">
+        <Link href={`/admin/home`} className="text-white">
+          <ArrowLeft className="mr-1 h-4 w-4" /> Back
+        </Link>
         <h3 className="text-lg font-semibold text-slate-100 tracking-tight">Teams</h3>
         <span className="text-xs text-slate-400">{data.length} total</span>
       </div>
